@@ -109,6 +109,7 @@ public class CatalogFilterAccessManager extends ResourceAccessManagerWrapper {
     }
 
     private boolean hideResource(ResourceInfo resource) {
+        if (resource == null) return true;
         for (CatalogFilter filter : getCatalogFilters()) {
             if (filter.hideResource(resource)) {
                 return true;

@@ -128,6 +128,7 @@ public class DefaultResourceAccessManager implements ResourceAccessManager {
 
     public boolean canAccess(Authentication user, WorkspaceInfo workspace, AccessMode mode) {
         checkPropertyFile();
+        if (workspace == null) return false;
         SecureTreeNode node = root.getDeepestNode(new String[] {workspace.getName()});
         if (node.canAccess(user, mode)) {
             return true;

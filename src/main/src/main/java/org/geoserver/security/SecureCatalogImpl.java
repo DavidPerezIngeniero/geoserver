@@ -658,18 +658,21 @@ public class SecureCatalogImpl extends AbstractDecorator<Catalog> implements Cat
         ArrayList<PublishedInfo> wrapped = new ArrayList<>(layers.size());
         for (int i = 0; i < layers.size(); i++) {
             PublishedInfo layer = layers.get(i);
-            StyleInfo style = (styles != null && styles.size() > i) ? styles.get(i) : null;
-            // for nested layers, hide in mixed mode, the inner layers were not explicitly requested
-            PublishedInfo checked =
-                    checkAccess(user, layer, MixedModeBehavior.HIDE, extendedContainers);
-            if (checked != null) {
-                wrapped.add(checked);
-                selectedStyles.add(style);
-            } else if (layer == null) {
-                StyleInfo styleGroup = checkAccess(user, style, MixedModeBehavior.HIDE);
-                if (styleGroup != null) {
-                    wrapped.add(null);
-                    selectedStyles.add(styleGroup);
+            if (layer != null) {
+                StyleInfo style = (styles != null && styles.size() > i) ? styles.get(i) : null;
+                // for nested layers, hide in mixed mode, the inner layers were not explicitly
+                // requested
+                PublishedInfo checked =
+                        checkAccess(user, layer, MixedModeBehavior.HIDE, extendedContainers);
+                if (checked != null) {
+                    wrapped.add(checked);
+                    selectedStyles.add(style);
+                } else if (layer == null) {
+                    StyleInfo styleGroup = checkAccess(user, style, MixedModeBehavior.HIDE);
+                    if (styleGroup != null) {
+                        wrapped.add(null);
+                        selectedStyles.add(styleGroup);
+                    }
                 }
             }
         }
@@ -881,9 +884,10 @@ public class SecureCatalogImpl extends AbstractDecorator<Catalog> implements Cat
 
             if (info instanceof LayerInfo) {
                 dl = accessManager.getAccessLimits(user, (LayerInfo) info, containers);
+                ResourceInfo resource = ((LayerInfo) info).getResource();
                 wl =
                         accessManager.getAccessLimits(
-                                user, ((LayerInfo) info).getResource().getStore().getWorkspace());
+                                user, resource == null ? null : resource.getStore().getWorkspace());
             } else {
                 dl = accessManager.getAccessLimits(user, (ResourceInfo) info);
                 wl =
@@ -1019,8 +1023,10 @@ public class SecureCatalogImpl extends AbstractDecorator<Catalog> implements Cat
     protected List<LayerGroupInfo> filterGroups(Authentication user, List<LayerGroupInfo> groups) {
         List<LayerGroupInfo> result = new ArrayList<LayerGroupInfo>();
         for (LayerGroupInfo original : groups) {
-            LayerGroupInfo secured = checkAccess(user, original, MixedModeBehavior.HIDE);
-            if (secured != null) result.add(secured);
+            if (original != null) {
+                LayerGroupInfo secured = checkAccess(user, original, MixedModeBehavior.HIDE);
+                if (secured != null) result.add(secured);
+            }
         }
         return result;
     }
